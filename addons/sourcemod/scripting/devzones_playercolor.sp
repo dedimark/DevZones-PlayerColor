@@ -1,58 +1,51 @@
-// ------ #include ------ //
-
 #include <sourcemod>
 #include <devzones>
-#include <multicolors>
-
-// ------ ConVar ------ //
-
-ConVar ConVar_Broadcast;
-
-// ------ #pragma ------ //
 
 #pragma semicolon 1
 #pragma newdecls required
 
-// ------ myinfo ------ //
-
 public Plugin myinfo = 
 {
-	name = "SM DEV ZONES - Player Color",
-	author = "ByDexter",
-	description = "",
-	version = "1.0",
+	name = "SM DEV ZONES - Player Color", 
+	author = "ByDexter", 
+	description = "", 
+	version = "1.1", 
 	url = "https://steamcommunity.com/id/ByDexterTR/"
 };
 
-public void OnPluginStart()
-{
-	ConVar_Broadcast = CreateConVar("sm_zones_broadcast", "1", "Bölgeye giren oyuncuların ismi sohbetten yazsın mı");
-	AutoExecConfig(true, "DevZones-playercolor", "ByDexter");
-}
-
 public void Zone_OnClientEntry(int client, const char[] zone)
 {
-	if(client < 1 || client > MaxClients || !IsClientInGame(client) ||!IsPlayerAlive(client)) 
-		return;
-		
-	if(StrContains(zone, "playercolor", false) == 0)
+	if (IsValidClient(client) && StrContains(zone, "setcolor", false) != -1)
 	{
-		SetEntityRenderMode(client, RENDER_GLOW);
-		SetEntityRenderColor(client, 0, 255, 0, 255);
-		CPrintToChat(client, "{darkred}[ByDexter] {green}playercolor bölgesine {default}girdiniz.");
-		if(ConVar_Broadcast.IntValue == 1)
-		{
-			CPrintToChatAll("{darkred}[ByDexter] {darkblue}%N {default}isimli oyuncu {green}playercolor bölgesine giriş yaptı.", client);
-		}
+		char colors[25];
+		int clr[4];
+		
+		Format(colors, 25, "%s%s%s", colors[0], colors[1], colors[2]);
+		clr[0] = StringToInt(colors);
+		Format(colors, 25, "%s%s%s", colors[4], colors[5], colors[6]);
+		clr[1] = StringToInt(colors);
+		Format(colors, 25, "%s%s%s", colors[8], colors[9], colors[10]);
+		clr[2] = StringToInt(colors);
+		Format(colors, 25, "%s%s%s", colors[12], colors[13], colors[14]);
+		clr[3] = StringToInt(colors);
+		
+		SetEntityRenderColor(client, clr[0], clr[1], clr[2], clr[3]);
 	}
 }
 
 public void Zone_OnClientLeave(int client, const char[] zone)
 {
-	if(StrContains(zone, "playercolor", false) == 0)
+	if (IsValidClient(client) && StrContains(zone, "setcolor", false) != -1)
 	{
-		SetEntityRenderMode(client, RENDER_NORMAL);
 		SetEntityRenderColor(client, 255, 255, 255, 255);
-		CPrintToChat(client, "{darkred}[ByDexter] {green}playercolor bölgesinden {default}ayrıldınız.");
 	}
 }
+
+bool IsValidClient(int client, bool nobots = true)
+{
+	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || (nobots && IsFakeClient(client)))
+	{
+		return false;
+	}
+	return IsClientInGame(client);
+} 
